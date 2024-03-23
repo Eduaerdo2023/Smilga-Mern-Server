@@ -15,7 +15,7 @@ const withValidationErrors = (validateValues) => {
         if (errorMessages[0].startsWith('no job')) {
           throw new NotFoundError(errorMessages)
         }
-        if(errorMessages[0].startsWith('not authorized')){
+        if (errorMessages[0].startsWith('not authorized')) {
           throw new UnauthorizedError('not authorized to access this route')
         }
         throw new BadRequestError(errorMessages)
@@ -52,7 +52,8 @@ export const validateRegisterInput = withValidationErrors([
     if (user) { throw new BadRequestError('email already exists') }
   }),
   body('password').notEmpty().withMessage('pasword is required').isLength({ min: 8, max: 30 }).withMessage('password must be at least 8 characters long'),
-  body('location').notEmpty().withMessage('location is required')
+  body('location').notEmpty().withMessage('location is required'),
+  body('lastName').notEmpty().withMessage('last name  is required')
 ])
 
 export const validateLoginInput = withValidationErrors([
@@ -65,4 +66,16 @@ export const validateLoginInput = withValidationErrors([
   body('password')
     .notEmpty()
     .withMessage('password is required')
+])
+
+export const validateUpdateUserInput = withValidationErrors([
+  body('name').notEmpty().withMessage('name is required'),
+  body('email').notEmpty().withMessage('email is required').isEmail().withMessage('Must be a valid email').custom(async (email, { req }) => {
+    const user = await User.findOne({ email })
+    if (user && user._id.toString() !== req.user.userId) {
+      throw new BadRequestError('email already exists')
+    }
+  }),
+  body('location').notEmpty().withMessage('location is required'),
+  body('lastName').notEmpty().withMessage('last name  is required')
 ])
